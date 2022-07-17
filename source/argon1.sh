@@ -488,7 +488,22 @@ echo 'else' >> $configscript
 echo '	echo "Cancelled, no data saved."' >> $configscript
 echo 'fi' >> $configscript
 
+#Tempmon script
+argon_create_file $tempmonscript
+
+echo '#! /usr/bin/env bash' >> $tempmonscript
+echo 'while true; do' >> $tempmonscript
+echo '    date' >> $tempmonscript
+echo '    vcgencmd measure_temp' >> $tempmonscript
+echo '    sleep 1' >> $tempmonscript
+echo '    # Go back up two lines.' >> $tempmonscript
+echo '    echo -ne "\033[2A"' >> $tempmonscript
+echo 'done' >> $tempmonscript
+
+
+
 sudo chmod 755 $configscript
+sudo chmod 755 $tempmonscript
 
 
 sudo systemctl daemon-reload
