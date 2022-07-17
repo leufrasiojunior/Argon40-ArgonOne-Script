@@ -58,6 +58,7 @@ shutdownscript="/lib/systemd/system-shutdown/"$daemonname"-poweroff.py"
 daemonconfigfile=/etc/$daemonname.conf
 configscript=/usr/bin/argonone-config
 removescript=/usr/bin/argonone-uninstall
+tempmonscript=/usr/bin/argonone-tempmon
 
 daemonfanservice=/lib/systemd/system/$daemonname.service
 	
@@ -300,20 +301,20 @@ echo 'echo "--------------------------------------"' >> $configscript
 echo 'echo "Argon One Fan Speed Configuration Tool"' >> $configscript
 echo 'echo "--------------------------------------"' >> $configscript
 echo 'echo "WARNING: This will remove existing configuration."' >> $configscript
-echo 'echo -n "Press Y to continue:"' >> $configscript
-echo 'read -n 1 confirm' >> $configscript
-echo 'echo' >> $configscript
-echo 'if [ "$confirm" = "y" ]' >> $configscript
-echo 'then' >> $configscript
-echo '	confirm="Y"' >> $configscript
-echo 'fi' >> $configscript
-echo '' >> $configscript
-echo 'if [ "$confirm" != "Y" ]' >> $configscript
-echo 'then' >> $configscript
-echo '	echo "Cancelled"' >> $configscript
-echo '	exit' >> $configscript
-echo 'fi' >> $configscript
-echo 'echo "Thank you."' >> $configscript
+echo '#echo -n "Press Y to continue:"' >> $configscript
+echo '#read -n 1 confirm' >> $configscript
+echo '#echo' >> $configscript
+echo '#if [ "$confirm" = "y" ]' >> $configscript
+echo '#then' >> $configscript
+echo '#	confirm="Y"' >> $configscript
+echo '#fi' >> $configscript
+echo '#' >> $configscript
+echo '#if [ "$confirm" != "Y" ]' >> $configscript
+echo '#then' >> $configscript
+echo '#	echo "Cancelled"' >> $configscript
+echo '#	exit' >> $configscript
+echo '#fi' >> $configscript
+echo '#echo "Thank you."' >> $configscript
 
 echo 'get_number () {' >> $configscript
 echo '	read curnumber' >> $configscript
@@ -349,21 +350,40 @@ echo '	echo "Select fan mode:"' >> $configscript
 echo '	echo "  1. Always on"' >> $configscript
 echo '	echo "  2. Adjust to temperatures (55C, 60C, and 65C)"' >> $configscript
 echo '	echo "  3. Customize behavior"' >> $configscript
-echo '	echo "  4. Cancel"' >> $configscript
+echo '	echo "  4. Reset to default Settings."' >> $configscript
+echo '	echo "  5. Cancel"' >> $configscript
 echo '	echo "NOTE: You can also edit $daemonconfigfile directly"' >> $configscript
-echo '	echo -n "Enter Number (1-4):"' >> $configscript
+echo '	echo -n "Enter Number (1-5):"' >> $configscript
 echo '	newmode=$( get_number )' >> $configscript
-echo '	if [[ $newmode -ge 1 && $newmode -le 4 ]]' >> $configscript
+echo '	if [[ $newmode -ge 1 && $newmode -le 5 ]]' >> $configscript
 echo '	then' >> $configscript
 echo '		loopflag=0' >> $configscript
 echo '	fi' >> $configscript
 echo 'done' >> $configscript
 
 echo 'echo' >> $configscript
-echo 'if [ $newmode -eq 4 ]' >> $configscript
+echo 'if [ $newmode -eq 5 ]' >> $configscript
 echo 'then' >> $configscript
 echo '	echo "Cancelled"' >> $configscript
 echo '	exit' >> $configscript
+
+echo 'elif [ $newmode -eq 4 ]' >> $configscript
+echo 'then'
+echo '	echo "This option reset to default settings. Are you sure? [Y|n]"' >> $configscript
+echo '	read -n 1 test' >> $configscript
+echo '		if [ $test != "y" ]' >> $configscript
+echo '			then' >> $configscript
+echo '				echo "Canceled. "' >> $configscript
+echo '				exit 0' >> $configscript
+echo '			else' >> $configscript
+echo '				echo "#" > $daemonconfigfile' >> $configscript
+echo '				echo "55=10" >> $daemonconfigfile' >> $configscript
+echo '				echo "60=55" >> $daemonconfigfile' >> $configscript
+echo '				echo "65=100" >> $daemonconfigfile' >> $configscript
+echo '				sudo systemctl restart argononed.service' >> $configscript
+echo '			exit 0' >> $configscript
+echo '		fi' >> $configscript
+
 echo 'elif [ $newmode -eq 1 ]' >> $configscript
 echo 'then' >> $configscript
 echo '	echo "#" > $daemonconfigfile' >> $configscript
